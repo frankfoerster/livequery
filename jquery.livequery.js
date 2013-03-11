@@ -9,7 +9,17 @@
  * Docs: http://docs.jquery.com/Plugins/livequery
  */
 
-(function ($, undefined) {
+(function ($, window, undefined) {
+
+var DOMSubtreeModified = 'DOMSubtreeModified',
+	DOMNodeInserted = 'DOMNodeInserted',
+	DOMNodeRemoved = 'DOMNodeRemoved',
+	DOMNodeInsertedIntoDocument = 'DOMNodeInsertedIntoDocument',
+	DOMNodeRemovedFromDocument = 'DOMNodeRemovedFromDocument',
+	DOMAttrModified = 'DOMAttrModified',
+	DOMCharacterDataModified = 'DOMCharacterDataModified',
+	document = window.document,
+	body = 'body';
 
 function _match(me, query, fn, fn2) {
 	return me.selector == query.selector &&
@@ -195,9 +205,11 @@ $.extend($jQlq, {
 	}
 });
 
-var MutationObserver = window.MutationObserver || window.WebKitMutationObserver || window.MozMutationObserver;
+var _run = function () { $jQlq.run(); },
+	MutationObserver = window.MutationObserver || window.WebKitMutationObserver || window.MozMutationObserver;
+
 if (MutationObserver) {
-	var _run = function () { $jQlq.run(); };
+
 	var observer = new MutationObserver(function (mutations) {
 		mutations.forEach(_run);
 	});
@@ -210,10 +222,59 @@ if (MutationObserver) {
 		characterDataOldValue: true
 	});
 } else {
-	// Register core DOM manipulation methods
-	$jQlq.registerPlugin('append', 'prepend', 'after', 'before', 'wrap', 'attr', 'removeAttr', 'addClass', 'removeClass', 'toggleClass', 'empty', 'remove', 'html', 'prop', 'removeProp');
+	$(function () {
+		var caps = (function () {
+			var caps = {},
+				eventTypes = [
+					DOMSubtreeModified, 
+					DOMNodeInserted, 
+					DOMNodeRemoved, 
+					DOMNodeInsertedIntoDocument, 
+					DOMNodeRemovedFromDocument, 
+					DOMAttrModified, 
+					DOMCharacterDataModified
+				],
+				div = $('<div>');
+
+			for (var i = 0; i < eventTypes.length; i++) {
+				var eventType = eventTypes[i];
+				caps[eventType] = false;
+				div.bind(eventType, function (evt) {
+					caps[evt.type] = true;
+				});
+			}
+
+			div.appendTo(body).attr(body, body).detach().remove();
+
+			return caps;
+		})();
+
+		if (caps[DOMSubtreeModified]) {
+			$(document).bind(DOMSubtreeModified, _run);
+		} else {
+			if (caps[DOMNodeInserted]) {
+				$(document).bind(DOMNodeInserted, _run);
+			} else if (caps[DOMNodeInsertedIntoDocument]) {
+				$(document).bind(DOMNodeInsertedIntoDocument, _run);
+			} else {
+				$jQlq.registerPlugin('append', 'prepend', 'after', 'before', 'wrap', 'html');
+			}
+			if (caps[DOMNodeRemoved]) {
+				$(document).bind(DOMNodeRemoved, _run);
+			} else if (caps[DOMNodeRemovedFromDocument]) {
+				$(document).bind(DOMNodeRemovedFromDocument, _run);
+			} else {
+				$jQlq.registerPlugin('empty', 'remove', 'html'); 
+			}
+		}
+		if (caps[DOMAttrModified]) {
+			$(document).bind(DOMAttrModified, _run);
+		} else {
+			$jQlq.registerPlugin('attr', 'removeAttr', 'addClass', 'removeClass', 'toggleClass', 'prop', 'removeProp', 'html');
+		}
+	});
 }
 // Run Live Queries when the Document is ready
 $(function() { $jQlq.play(); });
 
-})(jQuery);
+})(jQuery, window);

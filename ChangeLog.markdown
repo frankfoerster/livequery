@@ -2,6 +2,7 @@
 
 ## vNext
 * Add support for MutationObserver API
+* Add support for DOM Mutation Events
 
 ## 1.3.3
 * Extract query match function.
