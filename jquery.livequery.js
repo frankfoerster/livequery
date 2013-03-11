@@ -195,7 +195,7 @@ $.extend($jQlq, {
 	}
 });
 
-var MutationObserver = window.MutationObserver || window.WebKitMutationObserver;
+var MutationObserver = window.MutationObserver || window.WebKitMutationObserver || window.MozMutationObserver;
 if (MutationObserver) {
 	var _run = function () { $jQlq.run(); };
 	var observer = new MutationObserver(function (mutations) {
