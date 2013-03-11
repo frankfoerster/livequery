@@ -4,7 +4,7 @@
  * Dual licensed under the MIT (MIT_LICENSE.txt)
  * and GPL Version 2 (GPL_LICENSE.txt) licenses.
  *
- * Version: 1.3.2
+ * Version: 1.3.3
  * Requires jQuery 1.3+
  * Docs: http://docs.jquery.com/Plugins/livequery
  */
@@ -195,9 +195,24 @@ $.extend($jQlq, {
 	}
 });
 
-// Register core DOM manipulation methods
-$jQlq.registerPlugin('append', 'prepend', 'after', 'before', 'wrap', 'attr', 'removeAttr', 'addClass', 'removeClass', 'toggleClass', 'empty', 'remove', 'html', 'prop', 'removeProp');
-
+var MutationObserver = window.MutationObserver || window.WebKitMutationObserver;
+if (MutationObserver) {
+	var _run = function () { $jQlq.run(); };
+	var observer = new MutationObserver(function (mutations) {
+		mutations.forEach(_run);
+	});
+	observer.observe(document, { 
+		attributes: true, 
+		subtree: true,
+		childList: true,
+		characterData: true,
+		attributeOldValue: true,
+		characterDataOldValue: true
+	});
+} else {
+	// Register core DOM manipulation methods
+	$jQlq.registerPlugin('append', 'prepend', 'after', 'before', 'wrap', 'attr', 'removeAttr', 'addClass', 'removeClass', 'toggleClass', 'empty', 'remove', 'html', 'prop', 'removeProp');
+}
 // Run Live Queries when the Document is ready
 $(function() { $jQlq.play(); });
 
