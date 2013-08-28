@@ -11,6 +11,20 @@
  */
 (function($, undefined) {
 
+  // Add ECMA262-5 Array methods if not supported natively
+  // Fix for <= IE 8
+  if (!('indexOf' in Array.prototype)) {
+    Array.prototype.indexOf= function(find, i /*opt*/) {
+      if (i===undefined) i= 0;
+      if (i<0) i+= this.length;
+      if (i<0) i= 0;
+      for (var n= this.length; i<n; i++)
+        if (i in this && this[i]===find)
+          return i;
+      return -1;
+    };
+  }
+
   function _match(me, query, fn, fn2) {
     return me.selector == query.selector &&
       me.context == query.context &&
